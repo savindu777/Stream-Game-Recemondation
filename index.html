@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Steam Game Recommender</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+            background: #090f1b;
+            color: #e9eef9
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0
+        }
+
+        a {
+            color: #79c7ff
+        }
+
+        .shell {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 45px 22px 80px
+        }
+
+        header {
+            margin-bottom: 30px
+        }
+
+        .eyebrow {
+            font-size: 12px;
+            letter-spacing: .2em;
+            color: #71e4c2;
+            font-weight: 800;
+            text-transform: uppercase
+        }
+
+        h1 {
+            font-size: clamp(30px, 5vw, 52px);
+            margin: 12px 0 6px;
+            letter-spacing: -.04em
+        }
+
+        h2 {
+            font-size: 19px;
+            letter-spacing: -.02em;
+            margin: 0 0 18px
+        }
+
+        p {
+            color: #aebbd0;
+            line-height: 1.6
+        }
+
+        .intro {
+            max-width: 700px
+        }
+
+        .stats {
+            font-size: 13px;
+            color: #aab9d5;
+            margin-top: 10px
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(260px, 390px) 1fr;
+            gap: 20px;
+            align-items: start
+        }
+
+        .panel {
+            background: #121d2f;
+            border: 1px solid #2b3c56;
+            border-radius: 16px;
+            padding: 23px;
+            min-width: 0
+        }
+
+        label {
+            font-size: 13px;
+            color: #d5e0f2;
+            font-weight: 650;
+            display: block;
+            margin-bottom: 9px
+        }
+
+        input {
+            width: 100%;
+            border-radius: 9px;
+            border: 1px solid #4a5c76;
+            background: #0a1526;
+            color: #eef4ff;
+            padding: 13px 14px;
+            font-size: 15px;
+            outline: none
+        }
+
+        input:focus {
+            border-color: #62b3ee;
+            box-shadow: 0 0 0 3px #3788c32a
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 11px 14px
+        }
+
+        button:focus-visible {
+            outline: 3px solid #81d5e5;
+            outline-offset: 3px
+        }
+
+        .primary {
+            background: #66c6af;
+            color: #06221d;
+            width: 100%;
+            margin-top: 20px
+        }
+
+        .primary:hover {
+            background: #8cddc8
+        }
+
+        .primary:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+            max-height: 300px;
+            overflow: auto
+        }
+
+        .result,
+        .chip {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 9px;
+            background: #1c2a42;
+            border: 1px solid #35445b
+        }
+
+        .result span,
+        .chip span {
+            overflow-wrap: anywhere;
+            font-size: 13px
+        }
+
+        .secondary {
+            background: #27465a;
+            color: #c2e8fa;
+            flex-shrink: 0;
+            padding: 7px 11px
+        }
+
+        .remove {
+            background: #4b3445;
+            color: #f3c5d6;
+            flex-shrink: 0;
+            padding: 7px 11px
+        }
+
+        .caption {
+            font-size: 12px;
+            color: #a7b5ca;
+            margin: 18px 0 8px
+        }
+
+        .empty {
+            border: 1px dashed #4a5770;
+            border-radius: 12px;
+            padding: 28px 20px;
+            text-align: center;
+            color: #aebbd0;
+            font-size: 14px
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(225px, 1fr));
+            gap: 14px
+        }
+
+        .game {
+            overflow: hidden;
+            background: #17253a;
+            border: 1px solid #34455e;
+            border-radius: 13px
+        }
+
+        .game img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 460/215;
+            object-fit: cover;
+            background: #0b1422
+        }
+
+        .game-body {
+            padding: 15px
+        }
+
+        .game h3 {
+            font-size: 16px;
+            line-height: 1.3;
+            margin: 0 0 7px
+        }
+
+        .score {
+            font-size: 12px;
+            font-weight: 750;
+            color: #80dec4;
+            margin-bottom: 8px
+        }
+
+        .tags {
+            font-size: 12px;
+            line-height: 1.5;
+            color: #bbcee0;
+            min-height: 30px
+        }
+
+        .desc {
+            font-size: 12px;
+            line-height: 1.5;
+            color: #99aac1;
+            margin-top: 8px;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 3;
+            overflow: hidden
+        }
+
+        .loading {
+            color: #80dec4
+        }
+
+        .error {
+            color: #ffadb7
+        }
+
+        .foot {
+            font-size: 12px;
+            color: #7c90aa;
+            margin-top: 18px
+        }
+
+        @media(max-width:750px) {
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .shell {
+                padding-top: 26px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shell">
+        <header>
+            <div class="eyebrow">Content-based recommendations</div>
+            <h1>Find your next favorite game.</h1>
+            <p class="intro">Choose games you already like. The recommendation engine matches their Steam genres and
+                categories against your PostgreSQL game catalog.</p>
+            <div id="stats" class="stats" aria-live="polite">Loading catalog information…</div>
+        </header>
+        <div class="layout">
+            <section class="panel">
+                <h2>1. Choose favorite games</h2>
+                <label for="search">Search games in your database</label>
+                <input id="search" placeholder="Try Portal, Counter-Strike, Dota…" autocomplete="off" />
+                <div id="search-results" class="list" aria-live="polite"></div>
+                <div class="caption">Selected games (up to 10)</div>
+                <div id="favorites" class="list"></div>
+                <button id="recommend" class="primary" disabled>Recommend similar games</button>
+                <p class="foot">Scores indicate feature similarity, not the chance you'll enjoy the game. Favorites are
+                    not stored on the server.</p>
+            </section>
+            <section class="panel">
+                <h2>2. Your recommendations</h2>
+                <div id="message" class="empty">Choose at least one favorite game on the left and click Recommend.</div>
+                <div id="recommendations" class="results" aria-live="polite"></div>
+            </section>
+        </div>
+    </div>
+    <script>
+        const searchInput = document.querySelector('#search');
+        const searchResults = document.querySelector('#search-results');
+        const favoriteList = document.querySelector('#favorites');
+        const recommendButton = document.querySelector('#recommend');
+        const message = document.querySelector('#message');
+        const recommendations = document.querySelector('#recommendations');
+        const favorites = new Map();
+        let searchCounter = 0;
+        let debounce;
+
+        function el(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) node.textContent = text;
+            return node;
+        }
+        function showMessage(text, className = 'empty') {
+            message.style.display = 'block';
+            message.className = className;
+            message.textContent = text;
+        }
+        function renderFavorites() {
+            favoriteList.replaceChildren();
+            if (!favorites.size) favoriteList.append(el('div', 'empty', 'No games selected yet.'));
+            for (const [appid, name] of favorites) {
+                const row = el('div', 'chip');
+                row.append(el('span', '', name));
+                const remove = el('button', 'remove', 'Remove');
+                remove.type = 'button';
+                remove.addEventListener('click', () => {
+                    favorites.delete(appid);
+                    renderFavorites();
+                    searchGames();
+                });
+                row.append(remove);
+                favoriteList.append(row);
+            }
+            recommendButton.disabled = favorites.size === 0;
+        }
+
+        async function searchGames() {
+            const requestNo = ++searchCounter;
+            const query = searchInput.value.trim();
+
+            searchResults.replaceChildren();
+
+            try {
+                let url;
+
+                if (query) {
+                    url = `/games/search?name=${encodeURIComponent(query)}&limit=25`;
+                } else {
+                    url = "/games?limit=25";
+                }
+
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                const games = query ? data.results : data.games;
+
+                if (requestNo !== searchCounter) return;
+
+                if (!games.length) {
+                    searchResults.append(
+                        el("div", "empty", "No matching games found.")
+                    );
+                }
+
+                games.forEach(game => {
+                    const row = el("div", "result");
+
+                    row.append(el("span", "", game.name));
+
+                    const add = el(
+                        "button",
+                        "secondary",
+                        favorites.has(game.appid) ? "Added" : "Add"
+                    );
+
+                    add.type = "button";
+
+                    add.disabled =
+                        favorites.has(game.appid) ||
+                        favorites.size >= 10;
+
+                    add.addEventListener("click", () => {
+                        favorites.set(game.appid, game.name);
+
+                        renderFavorites();
+                        searchGames();
+                    });
+
+                    row.append(add);
+                    searchResults.append(row);
+                });
+
+            } catch (error) {
+                if (requestNo === searchCounter) {
+                    searchResults.append(
+                        el("div", "error",
+                            `Could not search games: ${error.message}`)
+                    );
+                }
+            }
+        }
+
+
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(searchGames, 200);
+        });
+        recommendButton.addEventListener('click', async () => {
+            recommendButton.disabled = true;
+            recommendations.replaceChildren();
+            showMessage('Comparing game features…', 'loading');
+            try {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ appids: [...favorites.keys()] }),
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const detail = typeof data.detail === 'string'
+                        ? data.detail
+                        : JSON.stringify(data.detail ?? data);
+                    throw new Error(detail || `HTTP ${response.status}`);
+                }
+                const games = data.recommendations;
+                if (!Array.isArray(games)) {
+                    throw new Error('Unexpected recommendation API response');
+                }
+                if (!games.length) {
+                    showMessage('No other games have overlapping features. Import more games to improve recommendations.');
+                    return;
+                }
+                message.style.display = 'none';
+                games.forEach(game => {
+                    const card = el('article', 'game');
+                    if (game.header_image && /^https:\/\//i.test(game.header_image)) {
+                        const img = el('img');
+                        img.src = game.header_image;
+                        img.alt = `${game.name} cover artwork`;
+                        img.loading = 'lazy';
+                        card.append(img);
+                    }
+                    const body = el('div', 'game-body');
+                    const title = el('h3', '', game.name);
+                    body.append(title);
+                    body.append(el('div', 'score', `${(game.similarity * 100).toFixed(1)}% feature similarity`));
+                    const matchedFeatures = Array.isArray(game.matched_features) ? game.matched_features : [];
+                    body.append(el('div', 'tags', matchedFeatures.length ? `Shared: ${matchedFeatures.join(', ')}` : 'Similar game features'));
+                    if (game.short_description) {
+                        // Store descriptions can be HTML. Display as plain text to avoid injecting HTML.
+                        const stripped = game.short_description.replace(/<[^>]*>/g, '');
+                        body.append(el('div', 'desc', stripped));
+                    }
+                    const link = el('a', '', 'View on Steam');
+                    link.href = `https://store.steampowered.com/app/${encodeURIComponent(game.appid)}/`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    body.append(link);
+                    card.append(body);
+                    recommendations.append(card);
+                });
+            } catch (error) {
+                showMessage(`Recommendation failed: ${error.message}`, 'error');
+            } finally {
+                recommendButton.disabled = favorites.size === 0;
+            }
+        });
+        fetch('/health').then(r => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        }).then(info => {
+            document.querySelector("#stats").textContent =
+                `${info.games_with_features} games with features · ` +
+                `${info.unique_features} unique genres/categories`;
+
+        }).catch(err => {
+            document.querySelector('#stats').textContent = `Database unavailable: ${err.message}`;
+        });
+        renderFavorites();
+        searchGames();
+    </script>
+</body>
+
+</html>
